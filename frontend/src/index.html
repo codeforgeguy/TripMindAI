@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>AI Travel Planner</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  /*background: linear-gradient(135deg,#6b7cff,#7f60c6);*/
+}
+.chat {
+  width: 420px;
+  margin: 40px auto;
+  /*background: #fff;*/
+  border-radius: 14px;
+  padding: 15px;
+}
+.msg {
+  margin: 10px 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  max-width: 85%;
+  white-space: pre-line;
+}
+.bot {
+  background: #f1f3f8;
+}
+.user {
+  background: #6b7cff;
+  color: white;
+  margin-left: auto;
+}
+.input {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+input {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+button {
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: none;
+  background: #6b7cff;
+  color: white;
+  cursor: pointer;
+}
+</style>
+</head>
+
+<body>
+<div class="chat" id="chat"></div>
+
+<div class="chat">
+  <div class="input">
+    <input id="text" placeholder="Ask about your trip..." />
+    <button onclick="send()">Send</button>
+  </div>
+</div>
+
+<script>
+let sessionId = null;
+
+function add(text, cls) {
+  const d = document.createElement("div");
+  d.className = "msg " + cls;
+  d.innerText = text;
+  document.getElementById("chat").appendChild(d);
+}
+
+async function send() {
+  const text = document.getElementById("text").value;
+  if (!text) return;
+  add(text, "user");
+  document.getElementById("text").value = "";
+
+  const res = await fetch("http://127.0.0.1:8000/chat", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({ session_id: sessionId, message: text })
+  });
+  const data = await res.json();
+  sessionId = data.session_id;
+  add(data.reply, "bot");
+}
+</script>
+</body>
+</html>

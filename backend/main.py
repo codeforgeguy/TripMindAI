@@ -1,15 +1,16 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
+from starlette.responses import Response
 from graph import build_graph
 
 app = FastAPI()
 
-# 🔥 SAFE CORS (production debug mode)
+# 🔥 ABSOLUTE CORS FIX
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    allow_origins=["*"],          # allow everything
+    allow_credentials=False,      # REQUIRED with "*"
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -19,14 +20,17 @@ chatbot = build_graph()
 class ChatRequest(BaseModel):
     message: str
 
+# ✅ Root (GET + HEAD)
 @app.api_route("/", methods=["GET", "HEAD"])
 def root():
     return {"status": "ok"}
 
-@app.options("/{path:path}")
-def preflight_handler(path: str):
-    return {}
+# ✅ EXPLICIT OPTIONS HANDLER (this is the killer fix)
+@app.options("/chat")
+def options_chat():
+    return Response(status_code=200)
 
+# ✅ Chat endpoint
 @app.post("/chat")
 def chat(req: ChatRequest):
     try:
@@ -46,3 +50,10 @@ def chat(req: ChatRequest):
             "reply": "❌ Internal server error. Please try again.",
             "complete": True
         }
+# ✅ Reset endpoint
+@app.post("/chat/reset")
+def reset_chat():
+    """Resets the chatbot memory"""
+    global chatbot
+    chatbot = build_graph()
+    return {"status": "reset"}

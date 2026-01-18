@@ -5,7 +5,31 @@ function App() {
   useEffect(() => {
     document.title = "TripMind AI";
   }, []);
+  
   const API_URL = import.meta.env.VITE_API_URL;
+   /* ================= FULL RESET ON PAGE LOAD ================= */
+  useEffect(() => {
+    const resetChat = async () => {
+      try {
+        // 🔹 Reset backend chatbot memory
+        await fetch(`${API_URL}/chat/reset`, { method: "POST" });
+
+        // 🔹 Reset frontend messages
+        setMessages([
+          { role: "bot", text: "👋 Hi! Where would you like to travel?" }
+        ]);
+
+        // 🔹 Clear saved user input/messages (if using localStorage)
+        localStorage.removeItem("chatMessages");
+        localStorage.removeItem("userInput");
+      } catch (err) {
+        console.error("Failed to reset chat:", err);
+      }
+    };
+
+    resetChat();
+  }, []); // runs only on first load
+  
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { role: "bot", text: "👋 Hi! Where would you like to travel?" }
@@ -14,7 +38,8 @@ function App() {
 
   const chatEndRef = useRef(null);
   const streamRef = useRef(null);
-
+ 
+  /* ================= AUTO SCROLL ================= */
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);

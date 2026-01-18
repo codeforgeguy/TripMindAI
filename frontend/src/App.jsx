@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import "./fonts.css";
 
 function App() {
+  useEffect(() => {
+    document.title = "TripMind AI";
+  }, []);
+  const API_URL = import.meta.env.VITE_API_URL;
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState([
     { role: "bot", text: "👋 Hi! Where would you like to travel?" }
@@ -66,7 +70,7 @@ function App() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://127.0.0.1:8000/chat", {
+      const res = await fetch("https://tripmindai.onrender.com", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ message: userMsg.text })

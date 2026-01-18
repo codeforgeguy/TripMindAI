@@ -1,15 +1,6 @@
 import re
 from itinerary_llm import generate_itinerary
 
-# 🔒 Simple in-memory conversation state
-conversation_state = {
-    "destination": None,
-    "days": None,
-    "travel_style": None,
-    "budget_type": None,
-    "complete": False
-}
-
 
 # --------- helpers ---------
 
@@ -43,26 +34,34 @@ def looks_like_destination(text: str):
 # --------- main engine ---------
 
 def build_graph():
+    # ✅ STATE IS NOW LOCAL (THIS FIXES EVERYTHING)
+    conversation_state = {
+        "destination": None,
+        "days": None,
+        "travel_style": None,
+        "budget_type": None,
+        "complete": False
+    }
 
     def chatbot(payload: dict):
         text = payload["message"].strip().lower()
 
-        # 🧠 Fill destination
+        # 🧠 Destination
         if not conversation_state["destination"]:
             if looks_like_destination(text):
                 conversation_state["destination"] = payload["message"].title()
                 return {"reply": "💫 Great choice! How many days is your trip?"}
             return {"reply": "✈️ Where would you like to travel?"}
 
-        # 🧠 Fill days
+        # 🧠 Days
         if not conversation_state["days"]:
             days = extract_days(text)
             if days:
                 conversation_state["days"] = days
-                return {"reply": "🧳Nice! What is your travel style? (solo, family, couple)"}
+                return {"reply": "🧳 Nice! What is your travel style? (solo, family, couple)"}
             return {"reply": "Please tell me the trip duration (e.g. 5 days)"}
 
-        # 🧠 Fill travel style
+        # 🧠 Travel style
         if not conversation_state["travel_style"]:
             style = extract_travel_style(text)
             if style:
@@ -70,7 +69,7 @@ def build_graph():
                 return {"reply": "💰 Is this a budget, mid-range, or luxury trip?"}
             return {"reply": "Please choose a travel style: solo, family, or couple"}
 
-        # 🧠 Fill budget
+        # 🧠 Budget
         if not conversation_state["budget_type"]:
             budget = extract_budget(text)
             if budget:
@@ -87,7 +86,7 @@ def build_graph():
                 "complete": True
             }
 
-        # 🔁 Follow-up intent handling
+        # 🔁 Follow-ups
         if "food" in text:
             return {
                 "reply": f"""
@@ -95,10 +94,9 @@ def build_graph():
 
 • Local street food & night markets  
 • Authentic regional dishes  
-• Mid-range & popular local restaurants  
-• Café & dessert spots  
+• Popular local restaurants  
 
-Would you like hotel or activities next? 😊
+Would you like hotels or activities next? 😊
 """.strip()
             }
 
@@ -107,8 +105,8 @@ Would you like hotel or activities next? 😊
                 "reply": f"""
 🏨 Hotel Suggestions ({conversation_state['budget_type'].title()})
 
-• Centrally located hotels  
-• Comfortable stays with good reviews  
+• Centrally located stays  
+• Good reviews  
 • Suitable for {conversation_state['travel_style']} travelers  
 
 Want food or activities next?
@@ -120,16 +118,14 @@ Want food or activities next?
                 "reply": f"""
 🎯 Top Activities in {conversation_state['destination']}
 
-• City highlights & sightseeing  
-• Adventure & nature experiences  
-• Cultural & local experiences  
-• Relaxation & leisure  
+• Sightseeing  
+• Cultural experiences  
+• Leisure & relaxation  
 
 Would you like food or hotels next?
 """.strip()
             }
 
-        # fallback
         return {
             "reply": "I can help with food 🍽, hotels 🏨, or activities 🎯. What would you like?"
         }

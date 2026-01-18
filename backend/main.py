@@ -9,7 +9,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "https://trip-mind-ai-delta.vercel.app"
+        "https://trip-mind-ai-six.vercel.app/"
     ],
     allow_credentials=True,
     allow_methods=["*"],

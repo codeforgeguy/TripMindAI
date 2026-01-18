@@ -78,7 +78,7 @@ async function send() {
   add(text, "user");
   document.getElementById("text").value = "";
 
-  const res = await fetch("https://tripmindai.onrender.com", {
+  const res = await fetch("https://tripmindai.onrender.com/chat", {
     method: "POST",
     headers: {"Content-Type": "application/json"},
     body: JSON.stringify({ session_id: sessionId, message: text })

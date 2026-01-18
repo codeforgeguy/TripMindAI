@@ -40,15 +40,39 @@ def preflight_handler(path: str):
 # ================= CHAT ENDPOINT =================
 @app.post("/chat")
 def chat(req: ChatRequest):
-    """
-    Accepts: { "message": "<user message>" }
-    Returns: { "reply": "<bot reply>", "complete": bool }
-    """
-    result = chatbot({"message": req.message})
-    return {
-        "reply": result["reply"],
-        "complete": result.get("complete", False)
-    }
+    try:
+        if not req.message:
+            return {
+                "reply": "⚠️ Message cannot be empty.",
+                "complete": True
+            }
+
+        result = chatbot({"message": req.message})
+
+        # Defensive checks (critical for production)
+        if result is None:
+            raise ValueError("Chatbot returned None")
+
+        if not isinstance(result, dict):
+            raise ValueError(f"Invalid chatbot response type: {type(result)}")
+
+        reply = result.get("reply")
+        if not reply:
+            reply = "⚠️ I couldn't generate a response."
+
+        return {
+            "reply": reply,
+            "complete": result.get("complete", False)
+        }
+
+    except Exception as e:
+        # This WILL appear in Render logs
+        print("🔥 CHAT ERROR:", repr(e))
+
+        return {
+            "reply": "❌ Internal server error. Please try again.",
+            "complete": True
+        }
 
 # ================= RUN FOR LOCAL DEV (optional) =================
 if __name__ == "__main__":
